@@ -1,0 +1,447 @@
+{% extends 'base.html' %}
+
+{% block title %}Doctor Dashboard - Medguard{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="glass-card p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">Doctor Dashboard</h1>
+                    <p class="text-gray-400 mt-2">Welcome, Dr. {{ doctor_profile.user_profile.user.get_full_name }}</p>
+                </div>
+                <div class="flex gap-4">
+                    <a href="{% url 'prescriptions' %}" class="btn-secondary">
+                        <i class="fas fa-prescription-bottle mr-2"></i>Prescriptions
+                    </a>
+                    <a href="{% url 'health_reports' %}" class="btn-secondary">
+                        <i class="fas fa-file-medical mr-2"></i>Reports
+                    </a>
+                    <a href="{% url 'doctor_profile' %}" class="btn-secondary">
+                        <i class="fas fa-user-edit mr-2"></i>Profile
+                    </a>
+                    <button onclick="showDeleteModal()" class="btn-danger">
+                        <i class="fas fa-trash-alt mr-2"></i>Delete Account
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Account Modal -->
+        <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-gray-800 rounded-lg p-6 max-w-md mx-4">
+                <h3 class="text-xl font-bold text-white mb-4">Delete Account</h3>
+                <p class="text-gray-300 mb-6">Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.</p>
+                <form method="post" action="{% url 'delete_account' %}">
+                    {% csrf_token %}
+                    <div class="flex gap-4 justify-end">
+                        <button type="button" onclick="hideDeleteModal()" class="btn-secondary">Cancel</button>
+                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">Delete</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        {% if pending_appointments > 0 or unread_messages > 0 %}
+        <div class="glass-card p-6 mb-6 border-l-4 border-yellow-400">
+            <h2 class="text-xl font-bold text-white mb-4">
+                <i class="fas fa-bell mr-2 text-yellow-400"></i>Notifications
+            </h2>
+            <div class="space-y-3">
+                {% if pending_appointments > 0 %}
+                <div class="flex items-center p-3 bg-yellow-500/20 rounded-lg">
+                    <i class="fas fa-calendar-plus text-yellow-400 mr-3"></i>
+                    <div>
+                        <p class="text-white font-medium">{{ pending_appointments }} pending appointment{{ pending_appointments|pluralize }} requiring attention</p>
+                        <p class="text-gray-400 text-sm">Review and respond to appointment requests</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if unread_messages > 0 %}
+                <div class="flex items-center p-3 bg-blue-500/20 rounded-lg">
+                    <i class="fas fa-envelope text-blue-400 mr-3"></i>
+                    <div>
+                        <p class="text-white font-medium">{{ unread_messages }} unread message{{ unread_messages|pluralize }}</p>
+                        <p class="text-gray-400 text-sm">Check your patient communications</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="glass-card p-6">
+                <div class="flex items-center">
+                    <div class="bg-purple-600 p-3 rounded-full">
+                        <i class="fas fa-user-md text-white text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-white">Specialization</h3>
+                        <p class="text-gray-400">{{ doctor_profile.specialization }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6">
+                <div class="flex items-center">
+                    <div class="bg-blue-600 p-3 rounded-full">
+                        <i class="fas fa-id-card text-white text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-white">License</h3>
+                        <p class="text-gray-400">{{ doctor_profile.license_number }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6">
+                <div class="flex items-center">
+                    <div class="bg-green-600 p-3 rounded-full">
+                        <i class="fas fa-calendar-check text-white text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-white">Appointments</h3>
+                        <p class="text-gray-400">{{ appointments|length }} total</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6">
+                <div class="flex items-center">
+                    <div class="bg-teal-600 p-3 rounded-full">
+                        <i class="fas fa-users text-white text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-semibold text-white">Patients</h3>
+                        <p class="text-gray-400">{{ recent_patients|length }} recent</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Prescription Creation -->
+        <div class="glass-card p-6 mb-8">
+            <h2 class="text-2xl font-bold text-white mb-6">
+                <i class="fas fa-prescription-bottle mr-2 text-purple-400"></i>Quick Prescription
+            </h2>
+
+            <!-- Completed Appointments with Prescription Creation -->
+            {% if appointments %}
+                {% for appointment in appointments %}
+                    {% if appointment.status == 'completed' %}
+                        {% if not appointment.prescription_set.exists %}
+                        <div class="bg-gray-800/50 p-4 rounded-lg mb-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-white">{{ appointment.patient.user.get_full_name }}</h3>
+                                    <p class="text-gray-400 text-sm">{{ appointment.reason }}</p>
+                                    <p class="text-gray-500 text-xs">{{ appointment.date|date:"M d, Y H:i" }}</p>
+                                </div>
+                                <button class="toggle-btn btn-primary text-sm" data-id="{{ appointment.id }}">
+                                    <i class="fas fa-plus mr-1"></i>Create Prescription
+                                </button>
+                            </div>
+
+                            <!-- Prescription Form (Hidden by default) -->
+                            <div id="prescription-form-{{ appointment.id }}" class="hidden mt-4">
+                                <form method="post" action="{% url 'create_prescription' appointment.id %}" class="space-y-4">
+                                    {% csrf_token %}
+                                    <div class="grid md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label for="medications-{{ appointment.id }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                                Medications <span class="text-red-400">*</span>
+                                            </label>
+                                            <textarea name="medications" id="medications-{{ appointment.id }}" rows="4"
+                                                      class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                      placeholder="List medications with dosages..." required></textarea>
+                                        </div>
+                                        <div>
+                                            <label for="instructions-{{ appointment.id }}" class="block text-sm font-medium text-gray-300 mb-2">
+                                                Instructions <span class="text-red-400">*</span>
+                                            </label>
+                                            <textarea name="instructions" id="instructions-{{ appointment.id }}" rows="4"
+                                                      class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                      placeholder="Usage instructions and precautions..." required></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button type="submit" class="btn-primary text-sm">
+                                            <i class="fas fa-save mr-1"></i>Save Prescription
+                                        </button>
+                                        <button type="button" class="cancel-btn btn-secondary text-sm" data-id="{{ appointment.id }}">
+                                            <i class="fas fa-times mr-1"></i>Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+
+            {% if not appointments or not has_completed_appointments %}
+            <div class="text-center py-8">
+                <i class="fas fa-calendar-check text-4xl text-gray-600 mb-3"></i>
+                <p class="text-gray-400">Complete appointments to create prescriptions</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Appointments Management -->
+        <div class="glass-card p-6 mb-8">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-white">Appointment Management</h2>
+                <div class="flex gap-2">
+                    <button class="filter-btn btn-secondary text-sm" data-status="all">All</button>
+                    <button class="filter-btn btn-secondary text-sm" data-status="pending">Pending</button>
+                    <button class="filter-btn btn-secondary text-sm" data-status="confirmed">Confirmed</button>
+                    <button class="filter-btn btn-secondary text-sm" data-status="completed">Completed</button>
+                </div>
+            </div>
+
+            {% if appointments %}
+                <div class="space-y-4">
+                    {% for appointment in appointments %}
+                        <div class="appointment-card border border-gray-700 rounded-lg p-4 hover:bg-gray-800/30 transition-colors" data-status="{{ appointment.status }}">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-4 mb-2">
+                                        <h3 class="text-lg font-semibold text-white">{{ appointment.patient.user.get_full_name }}</h3>
+                                        <span class="px-3 py-1 text-xs rounded-full font-medium
+                                            {% if appointment.status == 'confirmed' %}bg-green-500/20 text-green-300
+                                            {% elif appointment.status == 'pending' %}bg-yellow-500/20 text-yellow-300
+                                            {% elif appointment.status == 'completed' %}bg-blue-500/20 text-blue-300
+                                            {% else %}bg-gray-500/20 text-gray-300{% endif %}">
+                                            {{ appointment.status|title }}
+                                        </span>
+                                    </div>
+                                    <p class="text-gray-400 mb-2">{{ appointment.reason }}</p>
+                                    <p class="text-sm text-gray-500">
+                                        <i class="fas fa-calendar mr-2"></i>{{ appointment.date|date:"M d, Y" }}
+                                        <i class="fas fa-clock ml-4 mr-2"></i>{{ appointment.date|time:"H:i" }}
+                                    </p>
+                                </div>
+                                <div class="flex gap-2 ml-4">
+                                    {% if appointment.status == 'pending' %}
+                                        <form method="post" action="{% url 'update_appointment_status' appointment.id %}" class="inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="status" value="confirmed">
+                                            <button type="submit" class="btn-primary text-sm px-3 py-2">
+                                                <i class="fas fa-check mr-1"></i>Accept
+                                            </button>
+                                        </form>
+                                        <form method="post" action="{% url 'update_appointment_status' appointment.id %}" class="inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="status" value="cancelled">
+                                            <button type="submit" class="btn-secondary text-sm px-3 py-2 bg-red-600 hover:bg-red-700">
+                                                <i class="fas fa-times mr-1"></i>Reject
+                                            </button>
+                                        </form>
+                                    {% elif appointment.status == 'confirmed' %}
+                                        <form method="post" action="{% url 'update_appointment_status' appointment.id %}" class="inline">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="status" value="completed">
+                                            <button type="submit" class="btn-primary text-sm px-3 py-2">
+                                                <i class="fas fa-check-circle mr-1"></i>Complete
+                                            </button>
+                                        </form>
+                                        {% if not appointment.meeting_link %}
+                                        <a href="{% url 'create_meeting_link' appointment.id %}" class="btn-primary text-sm px-3 py-2 bg-green-600 hover:bg-green-700">
+                                            <i class="fas fa-video mr-1"></i>Start Call
+                                        </a>
+                                        {% else %}
+                                        <a href="{% url 'video_call' appointment.id %}" class="btn-primary text-sm px-3 py-2 bg-green-600 hover:bg-green-700">
+                                            <i class="fas fa-video mr-1"></i>Join Call
+                                        </a>
+                                        <a href="{% url 'end_call' appointment.id %}" class="btn-secondary text-sm px-3 py-2 bg-red-600 hover:bg-red-700">
+                                            <i class="fas fa-phone-slash mr-1"></i>End Call
+                                        </a>
+                                        {% endif %}
+                                    {% elif appointment.status == 'completed' %}
+                                        <a href="{% url 'create_prescription' appointment.id %}" class="btn-primary text-sm px-3 py-2">
+                                            <i class="fas fa-prescription-bottle mr-1"></i>Create Prescription
+                                        </a>
+                                    {% endif %}
+
+                                    <a href="{% url 'chat' appointment.patient.id %}" class="btn-secondary text-sm px-3 py-2">
+                                        <i class="fas fa-comments mr-1"></i>Chat
+                                    </a>
+
+                                    <a href="{% url 'patient_details' appointment.patient.id %}" class="btn-secondary text-sm px-3 py-2">
+                                        <i class="fas fa-user mr-1"></i>Details
+                                    </a>
+                                </div>
+                            </div>
+
+                            {% if appointment.notes %}
+                                <div class="mt-4 p-3 bg-gray-800/50 rounded-lg">
+                                    <p class="text-sm text-gray-300"><strong>Notes:</strong> {{ appointment.notes }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <i class="fas fa-calendar-times text-6xl text-gray-600 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-white mb-2">No Appointments</h3>
+                    <p class="text-gray-400">You don't have any appointments scheduled yet.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Recent Patients -->
+        {% if recent_patients %}
+        <div class="glass-card p-6">
+            <h2 class="text-2xl font-bold text-white mb-6">Recent Patients</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for patient in recent_patients %}
+                    <div class="bg-gray-800/50 rounded-lg p-4 hover:bg-gray-800/70 transition-colors">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-lg font-semibold text-white">{{ patient.user.get_full_name }}</h3>
+                            <a href="{% url 'chat' patient.id %}" class="text-purple-400 hover:text-purple-300">
+                                <i class="fas fa-comments"></i>
+                            </a>
+                        </div>
+                        <div class="space-y-2">
+                            <a href="{% url 'patient_details' patient.id %}" class="btn-secondary text-sm w-full text-center block">
+                                View Details & History
+                            </a>
+                            <a href="{% url 'create_health_report' patient.id %}" class="btn-primary text-sm w-full text-center block">
+                                Create Health Report
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function filterAppointments(status) {
+    const cards = document.querySelectorAll('.appointment-card');
+    cards.forEach(function(card) {
+        if (status === 'all' || card.dataset.status === status) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function togglePrescriptionForm(appointmentId) {
+    const form = document.getElementById('prescription-form-' + appointmentId);
+    if (form.classList.contains('hidden')) {
+        form.classList.remove('hidden');
+    } else {
+        form.classList.add('hidden');
+    }
+}
+
+// Event listeners for buttons
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter buttons
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    filterBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const status = this.getAttribute('data-status');
+            filterAppointments(status);
+        });
+    });
+
+    // Toggle buttons
+    const toggleBtns = document.querySelectorAll('.toggle-btn');
+    toggleBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            togglePrescriptionForm(id);
+        });
+    });
+
+    // Cancel buttons
+    const cancelBtns = document.querySelectorAll('.cancel-btn');
+    cancelBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            togglePrescriptionForm(id);
+        });
+    });
+});
+
+// Auto-refresh appointments every 30 seconds
+setInterval(function() {
+    location.reload();
+}, 30000);
+
+// Delete Modal Functions
+function showDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'flex';
+}
+function hideDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+}
+</script>
+
+<style>
+.appointment-card {
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    display: inline-block;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.btn-danger {
+    background: rgba(220, 38, 38, 0.8);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    display: inline-block;
+    border: 1px solid rgba(220, 38, 38, 0.8);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-danger:hover {
+    background: rgba(220, 38, 38, 1);
+    border-color: rgba(220, 38, 38, 1);
+}
+</style>
+{% endblock %}

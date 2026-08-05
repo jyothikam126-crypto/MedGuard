@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}Doctor Profile - Medguard{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <!-- Header -->
+        <div class="glass-card p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-white">Doctor Profile</h1>
+                    <p class="text-gray-400 mt-2">Manage your professional information</p>
+                </div>
+                <a href="{% url 'doctor_dashboard' %}" class="btn-secondary">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Profile Form -->
+        <div class="glass-card p-6">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Personal Information -->
+                <div>
+                    <h3 class="text-lg font-semibold text-white mb-4">Personal Information</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="first_name" class="block text-sm font-medium text-gray-300 mb-2">
+                                First Name <span class="text-red-400">*</span>
+                            </label>
+                            <input type="text" id="first_name" name="first_name"
+                                   value="{{ user.first_name }}"
+                                   class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                   required>
+                        </div>
+                        <div>
+                            <label for="last_name" class="block text-sm font-medium text-gray-300 mb-2">
+                                Last Name <span class="text-red-400">*</span>
+                            </label>
+                            <input type="text" id="last_name" name="last_name"
+                                   value="{{ user.last_name }}"
+                                   class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                   required>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <label for="email" class="block text-sm font-medium text-gray-300 mb-2">
+                            Email Address <span class="text-red-400">*</span>
+                        </label>
+                        <input type="email" id="email" name="email"
+                               value="{{ user.email }}"
+                               class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                               required>
+                    </div>
+                </div>
+
+                <!-- Professional Information -->
+                <div>
+                    <h3 class="text-lg font-semibold text-white mb-4">Professional Information</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="specialization" class="block text-sm font-medium text-gray-300 mb-2">
+                                Specialization <span class="text-red-400">*</span>
+                            </label>
+                            <input type="text" id="specialization" name="specialization"
+                                   value="{{ doctor_profile.specialization }}"
+                                   class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                   required>
+                        </div>
+                        <div>
+                            <label for="license_number" class="block text-sm font-medium text-gray-300 mb-2">
+                                License Number <span class="text-red-400">*</span>
+                            </label>
+                            <input type="text" id="license_number" name="license_number"
+                                   value="{{ doctor_profile.license_number }}"
+                                   class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                   required>
+                        </div>
+                    </div>
+
+                    <!-- Verification Status -->
+                    <div class="mt-4">
+                        <div class="flex items-center">
+                            <span class="text-sm font-medium text-gray-300 mr-3">Verification Status:</span>
+                            {% if doctor_profile.verified %}
+                                <span class="px-3 py-1 text-xs rounded-full bg-green-500/20 text-green-300">
+                                    <i class="fas fa-check-circle mr-1"></i>Verified
+                                </span>
+                            {% else %}
+                                <span class="px-3 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-300">
+                                    <i class="fas fa-clock mr-1"></i>Pending Verification
+                                </span>
+                            {% endif %}
+                        </div>
+                        {% if doctor_profile.verification_date %}
+                            <p class="text-xs text-gray-400 mt-1">
+                                Verified on: {{ doctor_profile.verification_date|date:"M d, Y" }}
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex gap-4">
+                    <button type="submit" class="btn-primary flex-1">
+                        <i class="fas fa-save mr-2"></i>Update Profile
+                    </button>
+                    <a href="{% url 'doctor_dashboard' %}" class="btn-secondary flex-1 text-center">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Account Statistics -->
+        <div class="glass-card p-6 mt-6">
+            <h3 class="text-lg font-semibold text-white mb-4">Account Statistics</h3>
+            <div class="grid md:grid-cols-3 gap-4">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-purple-400">{{ total_appointments }}</div>
+                    <div class="text-sm text-gray-400">Total Appointments</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-blue-400">{{ health_reports_count }}</div>
+                    <div class="text-sm text-gray-400">Health Reports Created</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-green-400">{{ completion_rate }}</div>
+                    <div class="text-sm text-gray-400">Completion Rate (%)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

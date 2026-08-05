@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Prescriptions{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-8">
+    <div class="max-w-6xl mx-auto px-4">
+        <!-- Header -->
+        <div class="glass-card p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-white mb-2">Prescriptions</h1>
+                    <p class="text-gray-400">
+                        {% if is_doctor %}Manage prescriptions for your patients{% else %}Your prescriptions from doctors{% endif %}
+                    </p>
+                </div>
+                <div class="flex gap-4">
+                    {% if is_doctor %}
+                    <a href="{% url 'doctor_dashboard' %}" class="btn-secondary">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                    </a>
+                    {% else %}
+                    <a href="{% url 'dashboard' %}" class="btn-secondary">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% if is_doctor %}
+            <div class="mt-4 p-4 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+                <p class="text-purple-300 text-sm">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    To create a new prescription, complete an appointment first, then use the "Create Prescription" button in your dashboard.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Prescriptions List -->
+        {% if prescriptions %}
+        <div class="space-y-6">
+            {% for prescription in prescriptions %}
+            <div class="glass-card p-6">
+                <div class="flex items-start justify-between mb-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-white mb-2">Prescription #{{ prescription.id }}</h3>
+                        <p class="text-gray-400 text-sm">
+                            {% if is_doctor %}Patient: {{ prescription.appointment.patient.user.get_full_name }}{% else %}From Dr. {{ prescription.appointment.doctor.user_profile.user.get_full_name }}{% endif %}
+                        </p>
+                        <p class="text-gray-400 text-sm">Issued: {{ prescription.issued_date|date:"M d, Y" }}</p>
+                        <p class="text-gray-400 text-sm">Appointment: {{ prescription.appointment.date|date:"M d, Y" }}</p>
+                    </div>
+                    {% if is_doctor and prescription.appointment.status == 'completed' %}
+                    <a href="{% url 'create_prescription' prescription.appointment.id %}" class="btn-secondary text-sm">
+                        <i class="fas fa-edit mr-2"></i>Edit
+                    </a>
+                    {% endif %}
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-md font-semibold text-purple-300 mb-2">Medications</h4>
+                        <div class="bg-gray-800/50 p-4 rounded-lg">
+                            <pre class="text-gray-200 whitespace-pre-wrap">{{ prescription.medications }}</pre>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-md font-semibold text-purple-300 mb-2">Instructions</h4>
+                        <div class="bg-gray-800/50 p-4 rounded-lg">
+                            <pre class="text-gray-200 whitespace-pre-wrap">{{ prescription.instructions }}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="glass-card p-12 text-center">
+            <i class="fas fa-prescription-bottle text-6xl text-gray-600 mb-4"></i>
+            <h3 class="text-xl font-semibold text-white mb-2">No Prescriptions</h3>
+            <p class="text-gray-400">
+                {% if is_doctor %}You haven't issued any prescriptions yet.{% else %}No doctors have prescribed medications for you yet.{% endif %}
+            </p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat with {{ receiver.user.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <!-- Header -->
+        <div class="glass-card p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-white mb-2">Chat with {{ receiver.user.get_full_name }}</h1>
+                    <p class="text-gray-400">{{ receiver.role|title }}</p>
+                </div>
+                <a href="{% if user.userprofile.role == 'patient' %}/{% else %}/doctor-dashboard/{% endif %}"
+                   class="btn-secondary">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="glass-card p-6 mb-6">
+            <div class="chat-messages space-y-4 max-h-96 overflow-y-auto" id="chat-messages">
+                {% for message in messages %}
+                <div class="flex {% if message.sender == user.userprofile %}justify-end{% else %}justify-start{% endif %}">
+                    <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg {% if message.sender == user.userprofile %}bg-purple-600 text-white{% else %}bg-gray-700 text-gray-200{% endif %}">
+                        <p class="text-sm">{{ message.message }}</p>
+                        <p class="text-xs opacity-75 mt-1">{{ message.timestamp|date:"M d, H:i" }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center text-gray-400 py-8">
+                    <i class="fas fa-comments text-4xl mb-4"></i>
+                    <p>No messages yet. Start the conversation!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Message Form -->
+        <div class="glass-card p-6">
+            <form method="post" class="flex gap-4">
+                {% csrf_token %}
+                <input type="text" name="message" placeholder="Type your message..."
+                       class="flex-1 px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                       required>
+                <button type="submit" class="btn-primary px-6 py-3">
+                    <i class="fas fa-paper-plane mr-2"></i>Send
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-messages::-webkit-scrollbar-track {
+    background: rgba(55, 65, 81, 0.5);
+    border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: rgba(147, 51, 234, 0.5);
+    border-radius: 3px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background: rgba(147, 51, 234, 0.7);
+}
+</style>
+
+<script>
+// Auto scroll to bottom of chat
+document.addEventListener('DOMContentLoaded', function() {
+    const chatMessages = document.getElementById('chat-messages');
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+});
+</script>
+{% endblock %}

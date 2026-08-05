@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}My Appointments - Medguard{% endblock %}
+
+{% block content %}
+<style>
+.card {
+  background: transparent;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.accent-color {
+  color: #2dd4bf;
+}
+.accent-bg {
+  background-color: #2dd4bf;
+}
+</style>
+<div class="py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-white">My Appointments</h1>
+      <p class="text-white mt-2">View and manage your scheduled appointments</p>
+    </div>
+
+    <div class="card p-6">
+      {% if appointments %}
+        <div class="space-y-4">
+          {% for appointment in appointments %}
+            <div class="border border-gray-200 rounded-lg p-4">
+              <div class="flex justify-between items-start mb-2">
+                <div>
+                  <h3 class="font-semibold text-white">Dr. {{ appointment.doctor.user_profile.user.get_full_name }}</h3>
+                  <p class="text-white">{{ appointment.doctor.specialization }}</p>
+                </div>
+                <span class="px-2 py-1 text-xs rounded-full {% if appointment.status == 'confirmed' %}bg-green-100 text-green-800{% elif appointment.status == 'pending' %}bg-yellow-100 text-yellow-800{% elif appointment.status == 'completed' %}bg-blue-100 text-blue-800{% else %}bg-red-100 text-red-800{% endif %}">
+                  {{ appointment.status|title }}
+                </span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+                <div>
+                  <p class="text-sm text-white">Date & Time</p>
+                  <p class="font-medium text-white">{{ appointment.date|date:"M d, Y H:i" }}</p>
+                </div>
+                <div>
+                  <p class="text-sm text-white">Reason</p>
+                  <p class="font-medium text-white">{{ appointment.reason }}</p>
+                </div>
+              </div>
+              {% if appointment.notes %}
+                <div class="mb-2">
+                  <p class="text-sm text-white">Notes</p>
+                  <p class="text-white">{{ appointment.notes }}</p>
+                </div>
+              {% endif %}
+              <div class="flex space-x-2">
+                <a href="{% url 'chat' appointment.doctor.user_profile.id %}" class="accent-bg text-white px-4 py-2 rounded-md text-sm hover:bg-teal-600 transition duration-200 inline-block text-center">
+                  Chat with Doctor
+                </a>
+                {% if appointment.meeting_link and appointment.status == 'confirmed' %}
+                <a href="{% url 'video_call' appointment.id %}" class="bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 transition duration-200 inline-block text-center">
+                  <i class="fas fa-video mr-1"></i>Join Call
+                </a>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-12">
+          <i class="fas fa-calendar-times text-6xl text-gray-300 mb-4"></i>
+          <h3 class="text-xl font-semibold text-white mb-2">No Appointments</h3>
+          <p class="text-white mb-4">You haven't booked any appointments yet.</p>
+          <a href="{% url 'connect_doctors' %}" class="accent-bg text-white px-6 py-3 rounded-md hover:bg-teal-600 transition duration-200">
+            Find a Doctor
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <!-- Header -->
+    <div class="mb-8 flex justify-between items-start">
+        <div>
+            <h1 class="text-3xl font-bold text-white mb-2">Welcome back, {{ user.first_name }}! 👋</h1>
+            <p class="text-gray-400">Here's an overview of your health journey</p>
+        </div>
+        <div class="flex gap-3 items-center">
+            <form method="post" action="{% url 'delete_account' %}" class="inline" onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.')">
+                {% csrf_token %}
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-md hover:opacity-80 transition-opacity border border-red-700">
+                    <i class="fas fa-trash-alt mr-2"></i>
+                    Delete Account
+                </button>
+            </form>
+            <form method="post" action="{% url 'logout' %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="bg-white/20 text-gray-200 text-sm font-semibold px-4 py-2 rounded-md hover:opacity-80 transition-opacity border border-white/30">
+                    <i class="fas fa-sign-out-alt mr-2"></i>
+                    Logout
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="stat-card">
+            <div class="flex items-center justify-between mb-4">
+                <div class="stat-icon bg-gradient-to-br from-teal-500 to-teal-600">
+                    <i class="fas fa-chart-line text-white"></i>
+                </div>
+                <span class="text-xs text-teal-400 bg-teal-500/20 px-2 py-1 rounded-full">+12%</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white">{{ total_predictions|default:"0" }}</h3>
+            <p class="text-gray-400 text-sm">Total Predictions</p>
+        </div>
+
+        <div class="stat-card">
+            <div class="flex items-center justify-between mb-4">
+                <div class="stat-icon bg-gradient-to-br from-rose-500 to-rose-600">
+                    <i class="fas fa-heart text-white"></i>
+                </div>
+                <span class="text-xs text-green-400 bg-green-500/20 px-2 py-1 rounded-full">Good</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white">{{ health_score|default:"85" }}%</h3>
+            <p class="text-gray-400 text-sm">Health Score</p>
+        </div>
+
+        <div class="stat-card">
+            <div class="flex items-center justify-between mb-4">
+                <div class="stat-icon bg-gradient-to-br from-violet-500 to-violet-600">
+                    <i class="fas fa-comments text-white"></i>
+                </div>
+            </div>
+            <h3 class="text-2xl font-bold text-white">{{ chat_sessions|default:"0" }}</h3>
+            <p class="text-gray-400 text-sm">DocGPT Sessions</p>
+        </div>
+
+        <div class="stat-card">
+            <div class="flex items-center justify-between mb-4">
+                <div class="stat-icon bg-gradient-to-br from-amber-500 to-amber-600">
+                    <i class="fas fa-calendar-check text-white"></i>
+                </div>
+            </div>
+            <h3 class="text-2xl font-bold text-white">{{ days_active|default:"1" }}</h3>
+            <p class="text-gray-400 text-sm">Days Active</p>
+        </div>
+    </div>
+
+    <!-- Health Checks Section -->
+    <div class="section-header">
+        <h2 class="section-title">Health Checks</h2>
+        <a href="{% url 'prediction_history' %}"
+            class="text-teal-400 hover:text-teal-300 text-sm font-medium transition-colors">
+            View History <i class="fas fa-arrow-right ml-1"></i>
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Diabetes Check -->
+        <a href="{% url 'home' %}" class="feature-card group">
+            <div class="icon-box bg-gradient-to-br from-blue-500 to-blue-600">
+                <i class="fas fa-droplet text-white"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2 group-hover:text-teal-300 transition-colors">Diabetes Check
+            </h3>
+            <p class="text-gray-400 text-sm mb-4">Predict diabetes risk based on symptoms and lifestyle factors using
+                ML.</p>
+            <div class="flex items-center text-teal-400 text-sm font-medium">
+                <span>Start Check</span>
+                <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+            </div>
+        </a>
+
+        <!-- Heart Disease -->
+        <a href="{% url 'heart_disease' %}" class="feature-card group">
+            <div class="icon-box bg-gradient-to-br from-rose-500 to-rose-600">
+                <i class="fas fa-heart-pulse text-white"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2 group-hover:text-teal-300 transition-colors">Heart Disease</h3>
+            <p class="text-gray-400 text-sm mb-4">Assess cardiovascular health with comprehensive heart risk analysis.
+            </p>
+            <div class="flex items-center text-teal-400 text-sm font-medium">
+                <span>Start Check</span>
+                <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+            </div>
+        </a>
+
+        <!-- Symptom Checker -->
+        <a href="{% url 'symptom_checker' %}" class="feature-card group">
+            <div class="icon-box bg-gradient-to-br from-emerald-500 to-emerald-600">
+                <i class="fas fa-stethoscope text-white"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2 group-hover:text-teal-300 transition-colors">Symptom Checker
+            </h3>
+            <p class="text-gray-400 text-sm mb-4">AI-powered symptom analysis to identify possible health conditions.
+            </p>
+            <div class="flex items-center text-teal-400 text-sm font-medium">
+                <span>Start Check</span>
+                <i class="fas fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+            </div>
+        </a>
+    </div>
+
+    <!-- DocGPT Section -->
+    <div class="section-header">
+        <h2 class="section-title">AI Health Assistant</h2>
+    </div>
+
+    <a href="{% url 'docgpt' %}" class="block glass-card p-6 mb-8">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between">
+            <div class="flex items-center mb-4 md:mb-0">
+                <div
+                    class="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center mr-4">
+                    <i class="fas fa-robot text-3xl text-white"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-1">DocGPT - Your AI Health Advisor</h3>
+                    <p class="text-gray-400 text-sm">Get instant health advice powered by advanced AI. Ask about
+                        symptoms, medications, and wellness tips.</p>
+                </div>
+            </div>
+            <button class="btn-primary">
+                <i class="fas fa-comments"></i>
+                Start Chat
+            </button>
+        </div>
+    </a>
+
+    <!-- Health Tips -->
+    <div class="section-header">
+        <h2 class="section-title">Daily Health Tips</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="glass-card p-5">
+            <div class="flex items-start">
+                <div class="w-10 h-10 rounded-xl bg-teal-500/20 flex items-center justify-center mr-3 flex-shrink-0">
+                    <i class="fas fa-walking text-teal-400"></i>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-1">Stay Active</h4>
+                    <p class="text-gray-400 text-sm">Aim for at least 30 minutes of moderate exercise daily.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card p-5">
+            <div class="flex items-start">
+                <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center mr-3 flex-shrink-0">
+                    <i class="fas fa-glass-water text-blue-400"></i>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-1">Stay Hydrated</h4>
+                    <p class="text-gray-400 text-sm">Drink at least 8 glasses of water throughout the day.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-card p-5">
+            <div class="flex items-start">
+                <div class="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center mr-3 flex-shrink-0">
+                    <i class="fas fa-moon text-violet-400"></i>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-1">Quality Sleep</h4>
+                    <p class="text-gray-400 text-sm">Get 7-9 hours of quality sleep for optimal health.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

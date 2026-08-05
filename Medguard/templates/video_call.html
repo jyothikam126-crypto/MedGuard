@@ -1,0 +1,260 @@
+{% extends 'base.html' %}
+
+{% block title %}Video Call - Medguard{% endblock %}
+
+{% block content %}
+<style>
+    .video-container {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    }
+    .local-video {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 200px;
+        height: 150px;
+        border-radius: 10px;
+        border: 2px solid #667eea;
+        background-color: #1e293b;
+        object-fit: cover;
+        z-index: 100;
+    }
+    .remote-video {
+        width: 100%;
+        max-width: 800px;
+        height: calc(100vh - 300px);
+        object-fit: cover;
+        border-radius: 10px;
+        background: #1e293b;
+    }
+    .call-controls {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(15, 23, 42, 0.95);
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        z-index: 100;
+    }
+    .control-btn {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+    }
+    .control-btn:hover {
+        transform: scale(1.1);
+    }
+    .end-call {
+        background-color: #ef4444;
+        color: white;
+    }
+    .end-call:hover {
+        background-color: #dc2626;
+    }
+    .mute-btn {
+        background-color: #374151;
+        color: white;
+    }
+    .mute-btn:hover {
+        background-color: #4b5563;
+    }
+    .video-btn {
+        background-color: #374151;
+        color: white;
+    }
+    .video-btn:hover {
+        background-color: #4b5563;
+    }
+    .info-panel {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: rgba(15, 23, 42, 0.95);
+        padding: 20px;
+        border-radius: 10px;
+        color: white;
+        z-index: 100;
+    }
+    .video-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: calc(100vh - 200px);
+    }
+    #localVideo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 10px;
+        transform: scaleX(-1);
+    }
+</style>
+
+<div class="min-h-screen video-container">
+    <!-- Info Panel -->
+    <div class="info-panel">
+        <h2 class="text-xl font-bold mb-2">
+            {% if user_profile.role == 'doctor' %}
+            Video Consultation with Patient
+            {% else %}
+            Video Consultation with Doctor
+            {% endif %}
+        </h2>
+        <p class="text-gray-400">
+            <strong>Appointment:</strong> {{ appointment.date|date:"M d, Y H:i" }}
+        </p>
+        <p class="text-gray-400">
+            <strong>Reason:</strong> {{ appointment.reason }}
+        </p>
+    </div>
+
+    <!-- Video Area -->
+    <div class="video-wrapper">
+        <div class="text-center">
+            <!-- Remote Video -->
+            <video id="remoteVideo" autoplay playsinline class="remote-video" style="display: none;"></video>
+            
+            <!-- Waiting for connection -->
+            <div id="waitingMessage">
+                <div class="w-32 h-32 rounded-full bg-purple-600 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-user text-5xl text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2">
+                    {% if user_profile.role == 'doctor' %}
+                    {{ appointment.patient.user.get_full_name }}
+                    {% else %}
+                    Dr. {{ appointment.doctor.user_profile.user.get_full_name }}
+                    {% endif %}
+                </h3>
+                <p class="text-gray-400" id="connectionStatus">
+                    {% if appointment.meeting_started %}
+                    Call in progress...
+                    {% else %}
+                    Connecting to video call...
+                    {% endif %}
+                </p>
+                <p class="text-sm text-gray-500 mt-4" id="cameraStatus">Please allow camera access to start the call</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Local Video -->
+    <div class="local-video">
+        <video id="localVideo" autoplay playsinline muted></video>
+    </div>
+
+    <!-- Call Controls -->
+    <div class="call-controls">
+        <button class="control-btn mute-btn" id="toggleMute" title="Toggle Mute">
+            <i class="fas fa-microphone"></i>
+        </button>
+        <button class="control-btn video-btn" id="toggleVideo" title="Toggle Video">
+            <i class="fas fa-video"></i>
+        </button>
+        {% if user_profile.role == 'doctor' %}
+        <a href="{% url 'end_call' appointment.id %}" class="control-btn end-call" title="End Call">
+            <i class="fas fa-phone-slash"></i>
+        </a>
+        {% else %}
+        <a href="{% url 'my_appointments' %}" class="control-btn end-call" title="Leave Call">
+            <i class="fas fa-phone-slash"></i>
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    // WebRTC Video Call Implementation
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+    const waitingMessage = document.getElementById('waitingMessage');
+    const connectionStatus = document.getElementById('connectionStatus');
+    const cameraStatus = document.getElementById('cameraStatus');
+    
+    let localStream = null;
+    let isMuted = false;
+    let isVideoOff = false;
+
+    // Initialize camera on page load
+    async function initializeCamera() {
+        try {
+            // Request camera and microphone access
+            localStream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                    facingMode: 'user'
+                },
+                audio: true
+            });
+            
+            // Display local video
+            localVideo.srcObject = localStream;
+            cameraStatus.textContent = 'Camera is active';
+            cameraStatus.classList.add('text-green-400');
+            cameraStatus.classList.remove('text-gray-500');
+            
+            console.log('Camera initialized successfully');
+            
+        } catch (error) {
+            console.error('Error accessing camera:', error);
+            cameraStatus.textContent = 'Error: ' + error.message;
+            cameraStatus.classList.add('text-red-400');
+            
+            if (error.name === 'NotAllowedError') {
+                alert('Please allow camera and microphone access to use video call.');
+            } else if (error.name === 'NotFoundError') {
+                alert('No camera or microphone found. Please connect a device and try again.');
+            }
+        }
+    }
+
+    // Toggle mute
+    document.getElementById('toggleMute').addEventListener('click', function() {
+        if (localStream) {
+            const audioTrack = localStream.getAudioTracks()[0];
+            if (audioTrack) {
+                audioTrack.enabled = !audioTrack.enabled;
+                isMuted = !audioTrack.enabled;
+                this.innerHTML = isMuted ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
+                this.classList.toggle('bg-red-600', isMuted);
+            }
+        }
+    });
+
+    // Toggle video
+    document.getElementById('toggleVideo').addEventListener('click', function() {
+        if (localStream) {
+            const videoTrack = localStream.getVideoTracks()[0];
+            if (videoTrack) {
+                videoTrack.enabled = !videoTrack.enabled;
+                isVideoOff = !videoTrack.enabled;
+                this.innerHTML = isVideoOff ? '<i class="fas fa-video-slash"></i>' : '<i class="fas fa-video"></i>';
+                this.classList.toggle('bg-red-600', isVideoOff);
+            }
+        }
+    });
+
+    // Handle page unload - stop all tracks
+    window.addEventListener('beforeunload', function() {
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+        }
+    });
+
+    // Initialize camera when page loads
+    initializeCamera();
+    
+    console.log('Video call room loaded for appointment:', '{{ appointment.id }}');
+</script>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Privacy Policy{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in max-w-4xl mx-auto">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-white mb-2">Privacy Policy & Data Usage</h1>
+        <p class="text-gray-400">How MedGuard protects your health data</p>
+    </div>
+
+    <div class="glass-card p-8 space-y-8">
+        <section>
+            <h2 class="text-xl font-semibold text-teal-400 mb-4 flex items-center">
+                <i class="fas fa-shield-halved mr-2"></i>
+                Data Collection & Consent
+            </h2>
+            <p class="text-gray-300 leading-relaxed">
+                At MedGuard, your privacy is our top priority. We collect health data (sleep, exercise, symptoms, etc.)
+                only with your explicit consent. This data is used solely to provide personalized health insights and
+                improve your experience on the platform.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-semibold text-teal-400 mb-4 flex items-center">
+                <i class="fas fa-user-secret mr-2"></i>
+                Anonymized Analytics
+            </h2>
+            <p class="text-gray-300 leading-relaxed">
+                Aggregated and anonymized data may be used for analytical purposes to help us understand broader health
+                trends. Your personal identity (name, email) is never shared or linked to this anonymized data.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-semibold text-teal-400 mb-4 flex items-center">
+                <i class="fas fa-file-export mr-2"></i>
+                Data Portability
+            </h2>
+            <p class="text-gray-300 leading-relaxed">
+                You have the right to export your health data at any time. We provide tools to download your history in
+                standard formats (PDF/CSV) so you can share them with your healthcare provider.
+            </p>
+        </section>
+
+        <section>
+            <h2 class="text-xl font-semibold text-teal-400 mb-4 flex items-center">
+                <i class="fas fa-trash-can mr-2"></i>
+                Data Deletion
+            </h2>
+            <p class="text-gray-300 leading-relaxed">
+                You can request the permanent deletion of your account and all associated health records at any time.
+                Once deleted, this data cannot be recovered.
+            </p>
+        </section>
+
+        <div class="bg-teal-500/10 border border-teal-500/20 rounded-xl p-6 mt-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-white">Your Consent Status</h3>
+                    <p class="text-sm text-gray-400">You are currently sharing data for health analytics.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span
+                        class="px-3 py-1 bg-teal-500/20 text-teal-400 rounded-full text-xs font-bold uppercase">Active</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

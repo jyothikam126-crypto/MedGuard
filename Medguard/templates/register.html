@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diabetes Prediction App - Register</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style id="app-style">
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: #1a202c;
+      min-height: 100vh;
+    }
+    
+    .form-container {
+      background-color: #fff;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .accent-color {
+      color: #2dd4bf;
+    }
+    
+    .accent-bg {
+      background-color: #2dd4bf;
+    }
+    
+    .accent-border {
+      border-color: #2dd4bf;
+    }
+    
+    .form-input {
+      transition: all 0.3s ease;
+    }
+    
+    .form-input:focus {
+      border-color: #2dd4bf;
+      box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.25);
+    }
+    
+    .btn-primary {
+      background-color: #2dd4bf;
+      color: white;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      background-color: #14b8a6;
+    }
+    
+    .logo-pulse {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+    
+    .medical-icon {
+      color: #2dd4bf;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center p-4 md:p-6">
+  <div class="form-container w-full max-w-lg p-6 md:p-8">
+    <div class="text-center mb-8">
+      <div class="inline-block logo-pulse">
+        <i class="fas fa-heartbeat text-5xl medical-icon"></i>
+      </div>
+      <h1 class="text-2xl font-bold mt-4 text-gray-800">Diabetes Prediction App</h1>
+      <p class="text-gray-600 mt-1">Create a new account</p>
+    </div>
+    
+    <form method="post" action="{% url 'register' %}">
+      {% csrf_token %}
+      <!-- Basic Information -->
+      <div class="mb-4">
+        <label for="username" class="block text-gray-700 text-sm font-medium mb-1">Username</label>
+        <input type="text" id="username" name="username" required 
+               class="form-input w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none">
+      </div>
+      
+      <div class="flex space-x-4 mb-4">
+        <div class="w-1/2">
+          <label for="firstName" class="block text-gray-700 text-sm font-medium mb-1">First Name</label>
+          <input type="text" id="firstName" name="first_name" required 
+                 class="form-input w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none">
+        </div>
+        <div class="w-1/2">
+          <label for="lastName" class="block text-gray-700 text-sm font-medium mb-1">Last Name</label>
+          <input type="text" id="lastName" name="last_name" required 
+                 class="form-input w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none">
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label for="email" class="block text-gray-700 text-sm font-medium mb-1">Email</label>
+        <input type="email" id="email" name="email" required 
+               class="form-input w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none">
+      </div>
+
+      <div class="mb-4">
+        <label for="password" class="block text-gray-700 text-sm font-medium mb-1">Password</label>
+        <input type="password" id="password" name="password" required 
+               class="form-input w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none">
+      </div>
+
+      <div class="mb-6">
+        <label for="confirmPassword" class="block text-gray-700 text-sm font-medium mb-1">Confirm Password</label>
+        <input type="password" id="confirmPassword" name="confirm_password" required
+               class="form-input w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none">
+      </div>
+
+      <!-- Role Selection -->
+      <div class="mb-6">
+        <label class="block text-gray-700 text-sm font-medium mb-2">Role</label>
+        <div class="flex space-x-4">
+          <label class="flex items-center">
+            <input type="radio" name="role" value="patient" checked class="mr-2">
+            Patient
+          </label>
+          <label class="flex items-center">
+            <input type="radio" name="role" value="doctor" class="mr-2">
+            Doctor
+          </label>
+        </div>
+      </div>
+
+      <!-- Doctor Specific Fields -->
+      <div id="doctorFields" class="hidden mb-6">
+        <div class="mb-4">
+          <label for="licenseNumber" class="block text-gray-700 text-sm font-medium mb-1">License Number</label>
+          <input type="text" id="licenseNumber" name="license_number"
+                 class="form-input w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none">
+        </div>
+        <div class="mb-4">
+          <label for="specialization" class="block text-gray-700 text-sm font-medium mb-1">Specialization</label>
+          <input type="text" id="specialization" name="specialization"
+                 class="form-input w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none">
+        </div>
+      </div>
+
+      <!-- Submit button -->
+      <button type="submit" class="btn-primary w-full py-3 rounded-md font-medium">
+        Create Account
+      </button>
+      
+      <div class="text-center mt-4">
+        <p class="text-gray-600 text-sm">
+          Already have an account? 
+          <a href="{% url 'login' %}" class="accent-color font-medium hover:underline">Login In</a>
+        </p>
+      </div>
+    </form>
+
+    {% if messages %}
+    <div class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+      {% for message in messages %}
+      <h3 class="text-gray-800">{{ message }}</h3>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const roleRadios = document.querySelectorAll('input[name="role"]');
+      const doctorFields = document.getElementById('doctorFields');
+
+      function toggleDoctorFields() {
+        const selectedRole = document.querySelector('input[name="role"]:checked').value;
+        if (selectedRole === 'doctor') {
+          doctorFields.classList.remove('hidden');
+          document.getElementById('licenseNumber').required = true;
+          document.getElementById('specialization').required = true;
+        } else {
+          doctorFields.classList.add('hidden');
+          document.getElementById('licenseNumber').required = false;
+          document.getElementById('specialization').required = false;
+        }
+      }
+
+      roleRadios.forEach(radio => {
+        radio.addEventListener('change', toggleDoctorFields);
+      });
+
+      // Initial check
+      toggleDoctorFields();
+    });
+  </script>
+</body>
+</html>

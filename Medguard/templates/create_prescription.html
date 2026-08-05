@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Prescription{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <!-- Header -->
+        <div class="glass-card p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-white mb-2">{% if prescription %}Edit Prescription{% else %}Create Prescription{% endif %}</h1>
+                    <p class="text-gray-400">For appointment with {{ appointment.patient.user.get_full_name }}</p>
+                </div>
+                <a href="{% url 'prescriptions' %}" class="btn-secondary">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Prescriptions
+                </a>
+            </div>
+        </div>
+
+        <!-- Appointment Details -->
+        <div class="glass-card p-6 mb-6">
+            <h3 class="text-lg font-semibold text-white mb-4">Appointment Details</h3>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-gray-400">Patient</p>
+                    <p class="text-white">{{ appointment.patient.user.get_full_name }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400">Date</p>
+                    <p class="text-white">{{ appointment.date|date:"M d, Y" }}</p>
+                </div>
+                <div class="md:col-span-2">
+                    <p class="text-gray-400">Reason</p>
+                    <p class="text-white">{{ appointment.reason }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prescription Form -->
+        <div class="glass-card p-6">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                <div>
+                    <label for="medications" class="block text-sm font-medium text-gray-300 mb-2">
+                        Medications <span class="text-red-400">*</span>
+                    </label>
+                    <textarea name="medications" id="medications" rows="6"
+                              class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                              placeholder="List medications with dosages..." required>{% if prescription %}{{ prescription.medications }}{% endif %}</textarea>
+                </div>
+
+                <div>
+                    <label for="instructions" class="block text-sm font-medium text-gray-300 mb-2">
+                        Instructions <span class="text-red-400">*</span>
+                    </label>
+                    <textarea name="instructions" id="instructions" rows="4"
+                              class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                              placeholder="Usage instructions and precautions..." required>{% if prescription %}{{ prescription.instructions }}{% endif %}</textarea>
+                </div>
+
+                <div class="flex gap-4">
+                    <button type="submit" class="btn-primary flex-1">
+                        <i class="fas fa-prescription-bottle mr-2"></i>{% if prescription %}Update Prescription{% else %}Create Prescription{% endif %}
+                    </button>
+                    <a href="{% url 'prescriptions' %}" class="btn-secondary flex-1 text-center">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

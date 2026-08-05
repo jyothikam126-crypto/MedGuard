@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MedGuard{% endblock %} | Health Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #14b8a6;
+            --primary-light: #2dd4bf;
+            --primary-dark: #0d9488;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(148, 163, 184, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: url('/static/background.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: var(--text-primary);
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.75);
+            z-index: -1;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 3px;
+        }
+
+        /* Glassmorphism */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            background: rgba(30, 41, 59, 0.8);
+            border-color: rgba(20, 184, 166, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            width: 280px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 50;
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            color: var(--text-secondary);
+            border-radius: 0.75rem;
+            margin: 0.5rem 0.75rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(20, 184, 166, 0.1);
+            color: var(--primary-light);
+        }
+
+        .sidebar-link.active {
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.2) 0%, rgba(20, 184, 166, 0.1) 100%);
+            color: var(--primary-light);
+            border-left: 3px solid var(--primary);
+        }
+
+        .sidebar-link i {
+            width: 24px;
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(20, 184, 166, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 500;
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(148, 163, 184, 0.1);
+            color: var(--text-primary);
+        }
+
+        /* Form Inputs */
+        .form-input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            padding: 0.875rem 1rem;
+            color: var(--text-primary);
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.2);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 52px;
+            height: 28px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--bg-card);
+            border-radius: 28px;
+            transition: 0.3s;
+            border: 1px solid var(--glass-border);
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        input:checked+.toggle-slider {
+            background: var(--primary);
+        }
+
+        input:checked+.toggle-slider:before {
+            transform: translateX(24px);
+            background: white;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(20, 184, 166, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 0 40px rgba(20, 184, 166, 0.5);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+
+        /* Logo */
+        .logo-container {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .logo-text {
+            margin-left: 12px;
+        }
+
+        .logo-text h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .logo-text span {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* User Profile */
+        .user-profile {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 1.25rem;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, #6366f1 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+        }
+
+        /* Mobile menu button */
+        .mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 60;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .mobile-menu-btn {
+                display: flex;
+            }
+        }
+
+        /* Stat Cards */
+        .stat-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: rgba(20, 184, 166, 0.3);
+            transform: translateY(-4px);
+        }
+
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        /* Feature Cards */
+        .feature-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(30, 41, 59, 0.5) 100%);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.25rem;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+
+        .feature-card:hover {
+            border-color: rgba(20, 184, 166, 0.4);
+            transform: translateY(-6px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-card .icon-box {
+            width: 72px;
+            height: 72px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1.25rem;
+        }
+
+        /* Section headers */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="logo-container">
+            <div class="logo-icon pulse-glow">
+                <i class="fas fa-shield-heart"></i>
+            </div>
+            <div class="logo-text">
+                <h1>MedGuard</h1>
+                <span>Health Dashboard</span>
+            </div>
+        </div>
+
+        <nav class="mt-6 flex-1 overflow-y-auto">
+            {% if user.userprofile.role == 'patient' %}
+                <!-- Patient Navigation -->
+                <a href="{% url 'dashboard' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="{% url 'home' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                    <i class="fas fa-droplet"></i>
+                    <span>Diabetes Check</span>
+                </a>
+                <a href="{% url 'heart_disease' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'heart_disease' %}active{% endif %}">
+                    <i class="fas fa-heart-pulse"></i>
+                    <span>Heart Disease</span>
+                </a>
+                <a href="{% url 'symptom_checker' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'symptom_checker' %}active{% endif %}">
+                    <i class="fas fa-stethoscope"></i>
+                    <span>Symptom Checker</span>
+                </a>
+                <a href="{% url 'docgpt' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'docgpt' %}active{% endif %}">
+                    <i class="fas fa-robot"></i>
+                    <span>DocGPT</span>
+                </a>
+
+                <div class="px-4 mt-6 mb-2">
+                    <span class="text-xs uppercase tracking-wider text-gray-500">Analytics & Privacy</span>
+                </div>
+
+                <a href="{% url 'daily_log' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'daily_log' %}active{% endif %}">
+                    <i class="fas fa-edit"></i>
+                    <span>Daily Log</span>
+                </a>
+                <a href="{% url 'health_analytics' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'health_analytics' %}active{% endif %}">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Health Analytics</span>
+                </a>
+                <a href="{% url 'privacy_policy' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'privacy_policy' %}active{% endif %}">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Privacy & Policy</span>
+                </a>
+
+                <div class="px-4 mt-6 mb-2">
+                    <span class="text-xs uppercase tracking-wider text-gray-500">History</span>
+                </div>
+
+                <a href="{% url 'prediction_history' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'prediction_history' %}active{% endif %}">
+                    <i class="fas fa-clock-rotate-left"></i>
+                    <span>My Predictions</span>
+                </a>
+
+                <div class="px-4 mt-6 mb-2">
+                    <span class="text-xs uppercase tracking-wider text-gray-500">Doctor Services</span>
+                </div>
+
+                <a href="{% url 'connect_doctors' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'connect_doctors' %}active{% endif %}">
+                    <i class="fas fa-user-md"></i>
+                    <span>Connect with Doctors</span>
+                </a>
+                <a href="{% url 'my_appointments' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'my_appointments' %}active{% endif %}">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>My Appointments</span>
+                </a>
+
+            {% elif user.userprofile.role == 'doctor' %}
+                <!-- Doctor Navigation - Only Doctor Features -->
+                <a href="{% url 'doctor_dashboard' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'doctor_dashboard' %}active{% endif %}">
+                    <i class="fas fa-user-md"></i>
+                    <span>Doctor Dashboard</span>
+                </a>
+
+                <div class="px-4 mt-6 mb-2">
+                    <span class="text-xs uppercase tracking-wider text-gray-500">Patient Management</span>
+                </div>
+
+                <a href="{% url 'prescriptions' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'prescriptions' %}active{% endif %}">
+                    <i class="fas fa-prescription-bottle"></i>
+                    <span>Prescriptions</span>
+                </a>
+                <a href="{% url 'health_reports' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'health_reports' %}active{% endif %}">
+                    <i class="fas fa-file-medical"></i>
+                    <span>Health Reports</span>
+                </a>
+
+                <div class="px-4 mt-6 mb-2">
+                    <span class="text-xs uppercase tracking-wider text-gray-500">Profile</span>
+                </div>
+
+                <a href="{% url 'doctor_profile' %}"
+                    class="sidebar-link {% if request.resolver_match.url_name == 'doctor_profile' %}active{% endif %}">
+                    <i class="fas fa-user-edit"></i>
+                    <span>My Profile</span>
+                </a>
+            {% endif %}
+
+            <div class="px-4 mt-6 mb-2">
+                <span class="text-xs uppercase tracking-wider text-gray-500">Account</span>
+            </div>
+
+            <a href="#" onclick="document.getElementById('logout-form').submit(); return false;"
+                class="sidebar-link">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </nav>
+
+        <!-- Hidden Logout Form -->
+        <form id="logout-form" method="post" action="{% url 'logout' %}" style="display: none;">
+            {% csrf_token %}
+        </form>
+
+        <!-- User Profile -->
+        <div class="user-profile">
+            <div class="flex items-center">
+                <div class="user-avatar">
+                    {{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-200">{{ user.first_name }} {{ user.last_name }}</p>
+                    <p class="text-xs text-gray-500">{{ user.email }}</p>
+                </div>
+            </div>
+            <form method="post" action="{% url 'logout' %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="text-gray-500 hover:text-red-400 transition-colors">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% if messages %}
+        <div class="mb-6 space-y-2">
+            {% for message in messages %}
+            <div class="rounded-lg border px-4 py-3 text-sm {% if message.tags == 'error' %}bg-red-500/15 border-red-500/40 text-red-200{% elif message.tags == 'success' %}bg-green-500/15 border-green-500/40 text-green-200{% else %}bg-blue-500/15 border-blue-500/40 text-blue-200{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Floating DocGPT Chat Button -->
+    <div id="docgpt-fab" class="docgpt-fab" onclick="toggleDocGPT()">
+        <img src="/static/docgpt-icon.png" alt="DocGPT" class="docgpt-fab-icon">
+        <div class="docgpt-fab-pulse"></div>
+    </div>
+
+    <!-- DocGPT Floating Chat Widget -->
+    <div id="docgpt-widget" class="docgpt-widget hidden">
+        <div class="docgpt-widget-header">
+            <div class="flex items-center">
+                <img src="/static/docgpt-icon.png" alt="DocGPT" class="w-8 h-8 mr-2">
+                <div>
+                    <h3 class="font-semibold text-white text-sm">DocGPT</h3>
+                    <span class="text-xs text-green-400">● Online</span>
+                </div>
+            </div>
+            <button onclick="toggleDocGPT()" class="text-gray-400 hover:text-white transition-colors">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div id="docgpt-messages" class="docgpt-widget-messages">
+            <div class="docgpt-message docgpt-message-ai">
+                <div class="flex items-start">
+                    <img src="/static/docgpt-icon.png" alt="DocGPT" class="w-6 h-6 mr-2 flex-shrink-0">
+                    <div>
+                        <p class="text-sm">Hello! I'm DocGPT, your AI health assistant. 👋 How can I help you today?</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="docgpt-widget-input">
+            <form id="docgpt-form" onsubmit="sendDocGPTMessage(event)">
+                <input type="text" id="docgpt-input" placeholder="Ask about health..." class="docgpt-input"
+                    autocomplete="off">
+                <button type="submit" class="docgpt-send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        /* DocGPT Floating Button */
+        .docgpt-fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(20, 184, 166, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .docgpt-fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(20, 184, 166, 0.6);
+        }
+
+        .docgpt-fab-icon {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .docgpt-fab-pulse {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(20, 184, 166, 0.4);
+            animation: fabPulse 2s infinite;
+            z-index: -1;
+        }
+
+        @keyframes fabPulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* DocGPT Widget */
+        .docgpt-widget {
+            position: fixed;
+            bottom: 100px;
+            right: 24px;
+            width: 380px;
+            height: 500px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 1rem;
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: widgetSlideIn 0.3s ease;
+        }
+
+        .docgpt-widget.hidden {
+            display: none;
+        }
+
+        @keyframes widgetSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .docgpt-widget-header {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(30, 41, 59, 0.8) 100%);
+            border-radius: 1rem 1rem 0 0;
+        }
+
+        .docgpt-widget-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .docgpt-message {
+            max-width: 85%;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            animation: messageIn 0.3s ease;
+        }
+
+        @keyframes messageIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .docgpt-message-user {
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+            margin-left: auto;
+            border-radius: 1rem 1rem 0.25rem 1rem;
+            color: white;
+        }
+
+        .docgpt-message-ai {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 1rem 1rem 1rem 0.25rem;
+            color: #e2e8f0;
+        }
+
+        .docgpt-widget-input {
+            padding: 1rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .docgpt-widget-input form {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .docgpt-input {
+            flex: 1;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: white;
+            font-size: 0.875rem;
+        }
+
+        .docgpt-input:focus {
+            outline: none;
+            border-color: #14b8a6;
+        }
+
+        .docgpt-input::placeholder {
+            color: #64748b;
+        }
+
+        .docgpt-send-btn {
+            background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .docgpt-send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .docgpt-typing {
+            display: flex;
+            gap: 4px;
+            padding: 0.5rem;
+        }
+
+        .docgpt-typing span {
+            width: 6px;
+            height: 6px;
+            background: #14b8a6;
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out;
+        }
+
+        .docgpt-typing span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .docgpt-typing span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes typingBounce {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .docgpt-widget {
+                width: calc(100% - 48px);
+                height: 60vh;
+                bottom: 90px;
+            }
+
+            .docgpt-fab {
+                width: 56px;
+                height: 56px;
+            }
+
+            .docgpt-fab-icon {
+                width: 32px;
+                height: 32px;
+            }
+        }
+    </style>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Function to get CSRF token from cookie
+        function getCSRFToken() {
+            const name = 'csrftoken';
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function (e) {
+            const sidebar = document.getElementById('sidebar');
+            const menuBtn = document.querySelector('.mobile-menu-btn');
+
+            if (window.innerWidth <= 1024 &&
+                !sidebar.contains(e.target) &&
+                !menuBtn.contains(e.target) &&
+                sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+            }
+        });
+
+        // DocGPT Widget Functions
+        let docgptHistory = [];
+
+        function toggleDocGPT() {
+            const widget = document.getElementById('docgpt-widget');
+            const fab = document.getElementById('docgpt-fab');
+            widget.classList.toggle('hidden');
+
+            if (!widget.classList.contains('hidden')) {
+                document.getElementById('docgpt-input').focus();
+            }
+        }
+
+        function addDocGPTMessage(content, isUser = false) {
+            const messagesContainer = document.getElementById('docgpt-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `docgpt-message ${isUser ? 'docgpt-message-user' : 'docgpt-message-ai'}`;
+
+            if (isUser) {
+                messageDiv.innerHTML = `<p class="text-sm">${escapeDocGPTHtml(content)}</p>`;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="flex items-start">
+                        <img src="/static/docgpt-icon.png" alt="DocGPT" class="w-6 h-6 mr-2 flex-shrink-0">
+                        <div class="text-sm">${formatDocGPTResponse(content)}</div>
+                    </div>
+                `;
+            }
+
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function escapeDocGPTHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatDocGPTResponse(text) {
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function showDocGPTTyping() {
+            const messagesContainer = document.getElementById('docgpt-messages');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'docgpt-typing-indicator';
+            typingDiv.className = 'docgpt-message docgpt-message-ai';
+            typingDiv.innerHTML = `
+                <div class="docgpt-typing">
+                    <span></span><span></span><span></span>
+                </div>
+            `;
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideDocGPTTyping() {
+            const typing = document.getElementById('docgpt-typing-indicator');
+            if (typing) typing.remove();
+        }
+
+        async function sendDocGPTMessage(e) {
+            e.preventDefault();
+
+            const input = document.getElementById('docgpt-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            addDocGPTMessage(message, true);
+            input.value = '';
+            showDocGPTTyping();
+
+            try {
+                const response = await fetch('{% url "api_docgpt" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCSRFToken()
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        history: docgptHistory
+                    })
+                });
+
+                const data = await response.json();
+                hideDocGPTTyping();
+
+                if (data.success) {
+                    addDocGPTMessage(data.response);
+                    docgptHistory.push({ role: 'user', content: message });
+                    docgptHistory.push({ role: 'assistant', content: data.response });
+                } else {
+                    addDocGPTMessage('Sorry, I encountered an error. Please try again.');
+                }
+            } catch (error) {
+                hideDocGPTTyping();
+                addDocGPTMessage('Sorry, I\'m having trouble connecting. Please try again.');
+            }
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

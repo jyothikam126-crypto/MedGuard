@@ -1,0 +1,408 @@
+{% extends 'base.html' %}
+
+{% block title %}Health Analytics{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .score-gauge {
+        position: relative;
+        width: 200px;
+        height: 200px;
+        margin: 0 auto;
+    }
+
+    .score-value {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 3rem;
+        font-weight: 800;
+        color: white;
+    }
+
+    .score-label {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <!-- Header -->
+    <div class="mb-8 flex justify-between items-end">
+        <div>
+            <div class="flex items-center mb-2">
+                <a href="{% url 'dashboard' %}" class="text-gray-400 hover:text-teal-400 transition-colors mr-2">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <h1 class="text-3xl font-bold text-white">Health Analytics</h1>
+            </div>
+            <p class="text-gray-400">Deep insights into your lifestyle and health trends</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="{% url 'daily_log' %}" class="btn-primary">
+                <i class="fas fa-plus mr-2"></i>
+                Log Today
+            </a>
+            <a href="{% url 'export_health_data' %}" class="btn-secondary">
+                <i class="fas fa-download mr-2"></i>
+                Download CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Score & Insights -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="lg:col-span-1 glass-card p-8 flex flex-col justify-center text-center">
+            <h3 class="text-lg font-semibold text-white mb-6">Overall Health Score</h3>
+            <div class="score-gauge">
+                <canvas id="scoreGauge"></canvas>
+                <div class="score-value">{{ avg_score }}</div>
+                <div class="score-label">Average</div>
+            </div>
+            <p class="mt-6 text-sm text-gray-400">
+                Your score is based on sleep, exercise, hydration, and nutrition over the last 7 days.
+            </p>
+        </div>
+
+        <div class="lg:col-span-2 glass-card p-8">
+            <h3 class="text-lg font-semibold text-white mb-6 flex items-center">
+                <i class="fas fa-lightbulb text-amber-400 mr-2"></i>
+                Smart AI Insights
+            </h3>
+
+            {% if suggestions %}
+            <div class="space-y-4">
+                {% for suggestion in suggestions %}
+                <div class="flex items-start bg-gray-800/50 rounded-xl p-4 border border-gray-700">
+                    <div
+                        class="w-10 h-10 rounded-lg bg-teal-500/20 flex items-center justify-center text-teal-400 mr-4 flex-shrink-0">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-200">{{ suggestion }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-10">
+                <i class="fas fa-chart-line text-gray-600 text-4xl mb-4"></i>
+                <p class="text-gray-500">No data yet. Log your health daily to get personalized AI insights.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+        <!-- Sleep Trends -->
+        <div class="glass-card p-6">
+            <h4 class="text-white font-semibold mb-4 flex items-center">
+                <i class="fas fa-moon text-indigo-400 mr-2"></i>
+                Sleep Trends (Hours)
+            </h4>
+            <div class="h-64">
+                <canvas id="sleepChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Exercise & Water -->
+        <div class="glass-card p-6">
+            <h4 class="text-white font-semibold mb-4 flex items-center">
+                <i class="fas fa-faucet-drip text-blue-400 mr-2"></i>
+                Hydration & Activity
+            </h4>
+            <div class="h-64">
+                <canvas id="activityChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Food Habits Distribution -->
+        <div class="glass-card p-6">
+            <h4 class="text-white font-semibold mb-4 flex items-center">
+                <i class="fas fa-utensils text-green-400 mr-2"></i>
+                Food Habits Ratio
+            </h4>
+            <div class="h-64">
+                <canvas id="foodChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Weight Trends -->
+        <div class="glass-card p-6">
+            <h4 class="text-white font-semibold mb-4 flex items-center">
+                <i class="fas fa-weight text-purple-400 mr-2"></i>
+                Weight Changes (kg)
+            </h4>
+            <div class="h-64">
+                <canvas id="weightChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Mood Changes -->
+        <div class="glass-card p-6">
+            <h4 class="text-white font-semibold mb-4 flex items-center">
+                <i class="fas fa-smile text-yellow-400 mr-2"></i>
+                Mood Trends
+            </h4>
+            <div class="h-64">
+                <canvas id="moodChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Health Score Trend -->
+        <div class="glass-card p-6">
+            <h4 class="text-white font-semibold mb-4 flex items-center">
+                <i class="fas fa-chart-line text-teal-400 mr-2"></i>
+                Health Score Trend
+            </h4>
+            <div class="h-64">
+                <canvas id="scoreTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const dates = {{ dates| safe }};
+        const sleepData = {{ sleep_data| safe }};
+        const waterData = {{ water_data| safe }};
+        const exerciseData = {{ exercise_data| safe }};
+        const weightData = {{ weight_data| safe }};
+        const moodData = {{ mood_data| safe }};
+        const moodDates = {{ mood_dates| safe }};
+        const foodLabels = {{ food_labels| safe }};
+        const foodCounts = {{ food_counts| safe }};
+        const foodColors = {{ food_colors| safe }};
+        const scores = {{ scores| safe }};
+        const scoreVal = {{ avg_score }};
+
+        // Score Gauge
+        const scoreCtx = document.getElementById('scoreGauge').getContext('2d');
+        new Chart(scoreCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [scoreVal, 100 - scoreVal],
+                    backgroundColor: [
+                        scoreVal > 70 ? '#14b8a6' : (scoreVal > 40 ? '#f59e0b' : '#ef4444'),
+                        'rgba(255, 255, 255, 0.05)'
+                    ],
+                    borderWidth: 0,
+                    circumference: 270,
+                    rotation: 225,
+                    cutout: '85%',
+                    borderRadius: 10
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+
+        // Sleep Chart
+        const sleepCtx = document.getElementById('sleepChart').getContext('2d');
+        new Chart(sleepCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Hours',
+                    data: sleepData,
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#fff',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+
+        // Activity Chart
+        const activityCtx = document.getElementById('activityChart').getContext('2d');
+        new Chart(activityCtx, {
+            type: 'bar',
+            data: {
+                labels: dates,
+                datasets: [
+                    {
+                        label: 'Water (ml)',
+                        data: waterData,
+                        backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                        borderRadius: 6,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Exercise (min)',
+                        data: exerciseData,
+                        backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                        borderRadius: 6,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } },
+                scales: {
+                    y: {
+                        position: 'left',
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    y1: {
+                        position: 'right',
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+
+        // Food Habits Chart
+        const foodCtx = document.getElementById('foodChart').getContext('2d');
+        new Chart(foodCtx, {
+            type: 'pie',
+            data: {
+                labels: foodLabels,
+                datasets: [{
+                    data: foodCounts,
+                    backgroundColor: foodColors,
+                    borderWidth: 2,
+                    borderColor: '#1f2937'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+
+        // Weight Chart
+        const weightCtx = document.getElementById('weightChart').getContext('2d');
+        new Chart(weightCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Weight (kg)',
+                    data: weightData,
+                    borderColor: '#a855f7',
+                    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#fff',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+
+        // Mood Chart
+        const moodCtx = document.getElementById('moodChart').getContext('2d');
+        new Chart(moodCtx, {
+            type: 'bar',
+            data: {
+                labels: moodDates,
+                datasets: [{
+                    label: 'Mood',
+                    data: moodData,
+                    backgroundColor: 'rgba(245, 158, 11, 0.6)',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: {
+                            color: '#94a3b8',
+                            callback: function(value) {
+                                const moods = ['sad', 'neutral', 'happy'];
+                                return moods[value] || value;
+                            }
+                        }
+                    },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+
+        // Health Score Trend Chart
+        const scoreTrendCtx = document.getElementById('scoreTrendChart').getContext('2d');
+        new Chart(scoreTrendCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Health Score',
+                    data: scores,
+                    borderColor: '#14b8a6',
+                    backgroundColor: 'rgba(20, 184, 166, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#fff',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#94a3b8' },
+                        min: 0,
+                        max: 100
+                    },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+    }) ();
+</script>
+{% endblock %}
