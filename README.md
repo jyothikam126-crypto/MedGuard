@@ -162,34 +162,43 @@ It also integrates the **Google Gemini API** for AI-powered symptom analysis and
 ## 📸 Screenshots
 
 ### Registration
-<img src="https://github.com/user-attachments/assets/f26e0472-613b-401d-b61c-486a2ddf94e6" width="900">
+<img width="1279" height="719" alt="image" src="https://github.com/user-attachments/assets/fb69161c-9838-4d4e-b1b4-8c3fae4d3d30" />
+
 
 ### Login
-<img src="https://github.com/user-attachments/assets/fd3af083-d3cc-4ad7-8f02-f82e9b63d662" width="900">
+<img width="1279" height="719" alt="image" src="https://github.com/user-attachments/assets/7c2dee37-4cbb-47f3-9f25-fcba99ce7e54" />
+
 
 ### Patient Dashboard
-<img src="https://github.com/user-attachments/assets/363d47d9-5e88-4ad9-a34a-78442a355915" width="900">
+<img width="1279" height="719" alt="image" src="https://github.com/user-attachments/assets/5ad2bf55-8ed6-4968-a99f-bd4b4b45c493" />
+
 
 ### Diabetes Prediction
-<img src="https://github.com/user-attachments/assets/70ec7049-ed22-4799-8c72-40d69e573aa2" width="900">
+<img width="1279" height="719" alt="image" src="https://github.com/user-attachments/assets/9b15409a-96c3-481d-95fe-bf2e90cca870" />
+
 
 ### Heart Disease Prediction
-<img src="https://github.com/user-attachments/assets/f292c157-3bb4-43b7-ba11-d9cff1173f01" width="900">
+<img width="1276" height="717" alt="image" src="https://github.com/user-attachments/assets/b6d1a3c2-7d49-4df2-aacc-577c8669a7c9" />
+
 
 ### AI Symptom Analyzer
-<img src="https://github.com/user-attachments/assets/d5cc6e38-5f3b-4c2c-b7d1-54951f0eb716" width="900">
+<img width="1279" height="719" alt="image" src="https://github.com/user-attachments/assets/28d0efbc-232e-4514-9bb5-93d7e775b4fc" />
 
 ### Health Analytics Dashboard
-<img src="https://github.com/user-attachments/assets/69a24ebc-3a3d-4a0c-8982-2043591741b0" width="900">
+<img width="1279" height="719" alt="image" src="https://github.com/user-attachments/assets/4f06df2a-d7d4-4bd6-94b9-2fa8887065d9" />
+
 
 ### Doctor Dashboard
-<img src="https://github.com/user-attachments/assets/7a0a2372-0144-4261-a932-c4744ea2a229" width="900">
+<img width="1279" height="719" alt="image" src="https://github.com/user-attachments/assets/b27552c4-7ead-42f1-9452-2fc1530464ff" />
+
 
 ### Video Consultation
-<img src="https://github.com/user-attachments/assets/ce20318d-9ded-4edc-8924-0403ec96d9db" width="900">
+<img width="1279" height="719" alt="image" src="https://github.com/user-attachments/assets/b86c4399-2b72-465f-a83c-0289706570f7" />
+
 
 ### Health Report
-<img src="https://github.com/user-attachments/assets/d9a89e32-5dab-4746-ad67-b42e2bb0fec4" width="900">
+<img width="1279" height="719" alt="image" src="https://github.com/user-attachments/assets/0ce04a4d-5eb3-4e2f-b398-f711b3b92b04" />
+
 
 ---
 
